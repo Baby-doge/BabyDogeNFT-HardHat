@@ -33,8 +33,8 @@ contract BabyDogeNFT is
   uint256 public REVEAL_TIMESTAMP;
   uint256 internal startingIndexBlock;
   uint256 internal startingIndex;
-  uint256 public constant dogePrice = 100000000000000; //0.0008 ETH
-  uint256 internal maxDogePurchase = 20;
+  uint256 public constant dogePrice = 100000000000000; //0.0001 ETH
+  uint256 internal maxDogePurchase = 1;
   uint256 internal MAX_DOGES;
   uint256 internal constant ITERATION_PERIOD = 4 weeks;
   bool public saleIsActive = false;
@@ -209,10 +209,10 @@ contract BabyDogeNFT is
    * Mints DOGES
    */
   function mintDoge(uint256 numberOfTokens) public payable {
-    require(saleStatus == SaleStatus.Public, "Public sale is not active");
-    require(numberOfTokens <= maxDogePurchase, "Can't Mint that many");
-    require(totalSupply().add(numberOfTokens) <= MAX_DOGES, "Total number of doges reached");
-    require(dogePrice.mul(numberOfTokens) <= msg.value, "Not enough eth");
+    require(saleStatus == SaleStatus.Public);
+    require(numberOfTokens <= maxDogePurchase);
+    require(totalSupply().add(numberOfTokens) <= MAX_DOGES);
+    require(dogePrice.mul(numberOfTokens) <= msg.value);
 
     for (uint256 i = 0; i < numberOfTokens; i++) {
       uint256 mintIndex = totalSupply() + 1;
@@ -324,14 +324,14 @@ contract BabyDogeNFT is
     payable
   {
 
-    require(saleStatus == SaleStatus.Whitelist, "Presale is not Open");
-    require(!whitelistClaimed[msg.sender], "You have already claimed Your Whitelist");
+    require(saleStatus == SaleStatus.Whitelist);
+    require(!whitelistClaimed[msg.sender]);
 
-    require(numberOfTokens <= maxDogePurchase, "Can't Mint that many" );
-    require(totalSupply().add(numberOfTokens) <= MAX_DOGES, "Total number of doges reached");
-    require(dogePrice.mul(numberOfTokens) <= msg.value, "Not enough eth");
+    require(numberOfTokens <= maxDogePurchase);
+    require(totalSupply().add(numberOfTokens) <= MAX_DOGES);
+    require(dogePrice.mul(numberOfTokens) <= msg.value);
     bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "You are not whitelisted");
+    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf));
 
 
     whitelistClaimed[msg.sender] = true;
@@ -350,8 +350,6 @@ contract BabyDogeNFT is
       startingIndexBlock = block.number;
     }
   }
-
-
 }
 
 
