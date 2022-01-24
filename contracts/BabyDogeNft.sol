@@ -329,13 +329,16 @@ contract BabyDogeNFT is
         bytes32[] calldata _merkleProof
     ) public payable {
         require(saleStatus == SaleStatus.Whitelist);
-        require(!whitelistClaimed[msg.sender]);
+        require(!whitelistClaimed[msg.sender], "You have already minted");
 
         require(numberOfTokens <= maxDogePurchase);
         require(totalSupply().add(numberOfTokens) <= MAX_DOGES);
         require(dogePrice.mul(numberOfTokens) <= msg.value);
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        require(MerkleProof.verify(_merkleProof, merkleRoot, leaf));
+        require(
+            MerkleProof.verify(_merkleProof, merkleRoot, leaf),
+            "You aren't on the whitelist"
+        );
 
         whitelistClaimed[msg.sender] = true;
 
