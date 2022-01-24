@@ -129,8 +129,8 @@ contract BabyDogeNFT is
         saleStatus = _saleStatus;
     }
 
-    function getSaleStatus() public view returns (SaleStatus) {
-        return saleStatus;
+    function getSaleStatus() public view returns (uint256) {
+        return uint256(saleStatus);
     }
 
     function setMaxMint(uint256 _maxDogePurchase) public onlyOwner {

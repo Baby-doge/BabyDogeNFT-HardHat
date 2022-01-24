@@ -89,6 +89,12 @@ it("Should get max Doges", async function () {
     expect(max).to.equal(1);
  });
 
+ it("Should get sales status", async function () {
+    let sale = await babyDogeNft.getSaleStatus();
+    console.log("sale status", sale)
+    expect(sale).to.equal(0);
+ });
+
 it("Should have correct count and ownership", async function () {
     expect(await babyDogeNft.totalSupply()).to.equal(98);
     await expect(babyDogeNft.ownerOf("0")).to.be.reverted;
