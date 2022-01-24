@@ -38,7 +38,6 @@ contract BabyDogeNFT is
     uint256 internal maxDogePurchase = 1;
     uint256 internal MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
-    bool public saleIsActive = false;
     bool internal withdrawIsLocked = false;
     bool public ethPayout = true;
     uint256 internal fee;

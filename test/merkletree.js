@@ -157,8 +157,10 @@ it("should allow anyone who is whitelisted to presale Mint", async function (){
 it("should allow anyone who is whitelisted to presale Mint", async function (){
     const claimingAddress = account5.address;
     const hashedAddress = keccak256(claimingAddress)
-
+    console.log("")
     const hexProof = merkleTree.getHexProof(hashedAddress);
+    console.log("HexProof", hexProof);
+
 
     let price = await babyDogeNft.dogePrice();
     let overrides = {
@@ -197,14 +199,50 @@ it("should allow anyone to Mint", async function (){
     expect(totalsupply).to.equal("102")
     });
 
-    it("should allow anyone to Mint 2 ", async function (){
-        let price = await babyDogeNft.dogePrice();
-        let overrides = {
+it("should allow anyone to Mint 2 ", async function (){
+    let price = await babyDogeNft.dogePrice();
+    let overrides = {
             value: price
           }
-        await babyDogeNft.connect(account9).mintDoge("1", overrides);
-        let totalsupply = await babyDogeNft.totalSupply()
-        expect(totalsupply).to.equal("103")
-        });
+    await babyDogeNft.connect(account9).mintDoge("1", overrides);
+    let totalsupply = await babyDogeNft.totalSupply()
+    expect(totalsupply).to.equal("103")
+ });
     
+ let whitelistAddresses2;
+it("Should make a merkleTree", async function (){
+    whitelistAddresses2 = [
+        "0x85d30747868a5081f53BC7B9450301e761620a4f",
+        "0x375CDCB6018f4c24C6380c72AdF4328baBD914Ba",
+        "0x37F023116F67323821b0b523E935071Fb5603f9b"
+        ]
+        
+        console.log("Accounts Array",whitelistAddresses )
+    });
+        
+it("Should set the leaf nodes and create the merkle tree", async function () {
+        leafNodes = whitelistAddresses2.map(addr => keccak256(addr));
+        merkleTree = new MerkleTree(leafNodes, keccak256, {sortPairs: true});
+        
+        rootHash = merkleTree.getRoot().toString('hex');
+       
+        const claimingAddress = "0x85d30747868a5081f53BC7B9450301e761620a4f";
+        const hashedAddress = keccak256(claimingAddress)
+        console.log("hashedAddress", hashedAddress)
+        const hexProof = merkleTree.getHexProof(hashedAddress);
+          
+        console.log("HexProof", hexProof);
 
+        
+        console.log("MerkleTree");
+        console.log(merkleTree);
+
+        console.log("RootHash");
+        console.log(merkleTree);
+});
+
+it("Should set the merkleRoot", async function () {
+    console.log("RootHash", rootHash)
+    let newRootHash = "0x"+rootHash;
+    await babyDogeNft.setMerkleRoot(newRootHash)
+});
