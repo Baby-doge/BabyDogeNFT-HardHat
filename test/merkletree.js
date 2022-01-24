@@ -214,7 +214,9 @@ it("Should make a merkleTree", async function (){
     whitelistAddresses2 = [
         "0x85d30747868a5081f53BC7B9450301e761620a4f",
         "0x375CDCB6018f4c24C6380c72AdF4328baBD914Ba",
-        "0x37F023116F67323821b0b523E935071Fb5603f9b"
+        "0x37F023116F67323821b0b523E935071Fb5603f9b",
+        "0x96f2568cb3794611Ee80C22e2D32F504aA273738",
+        "0x9b727D2297f334740cF6BC6c454eBb0604770aad"
         ]
         
         console.log("Accounts Array",whitelistAddresses )
@@ -231,8 +233,8 @@ it("Should set the leaf nodes and create the merkle tree", async function () {
         console.log("hashedAddress", hashedAddress)
         const hexProof = merkleTree.getHexProof(hashedAddress);
           
-        console.log("HexProof", hexProof);
-
+        console.log("RootHash", rootHash)
+        let newRootHash = "0x"+rootHash;
         
         console.log("MerkleTree");
         console.log(merkleTree);
@@ -241,8 +243,7 @@ it("Should set the leaf nodes and create the merkle tree", async function () {
         console.log(merkleTree);
 });
 
-it("Should set the merkleRoot", async function () {
-    console.log("RootHash", rootHash)
-    let newRootHash = "0x"+rootHash;
-    await babyDogeNft.setMerkleRoot(newRootHash)
-});
+// it("Should set the merkleRoot", async function () {
+
+//     await babyDogeNft.setMerkleRoot(newRootHash)
+// });
