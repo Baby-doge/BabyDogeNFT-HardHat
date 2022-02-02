@@ -2,7 +2,8 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { formatEther, parseEther, formatUnits, parseUnits} = require("@ethersproject/units");
 const { MerkleTree} = require("merkletreejs");
-const  keccak256  = require("keccak256")
+const  keccak256  = require("keccak256");
+const { providers } = require("ethers");
 
 
 let owner,
@@ -82,19 +83,6 @@ it("Should be able to reserve doges", async function () {
    await babyDogeNft.reserveDoges("98");
    expect(await babyDogeNft.totalSupply()).to.equal(98);
 });
-
-it("Should get max Doges", async function () {
-    let max = await babyDogeNft.getMaxDogesPurchaseable();
-    console.log("babyDogeMax", max)
-    expect(max).to.equal(1);
- });
-
- it("Should get sales status", async function () {
-    let sale = await babyDogeNft.getSaleStatus();
-    console.log("sale status", sale)
-    expect(sale).to.equal(0);
- });
-
 it("Should have correct count and ownership", async function () {
     expect(await babyDogeNft.totalSupply()).to.equal(98);
     await expect(babyDogeNft.ownerOf("0")).to.be.reverted;
@@ -157,10 +145,8 @@ it("should allow anyone who is whitelisted to presale Mint", async function (){
 it("should allow anyone who is whitelisted to presale Mint", async function (){
     const claimingAddress = account5.address;
     const hashedAddress = keccak256(claimingAddress)
-    console.log("")
-    const hexProof = merkleTree.getHexProof(hashedAddress);
-    console.log("HexProof", hexProof);
 
+    const hexProof = merkleTree.getHexProof(hashedAddress);
 
     let price = await babyDogeNft.dogePrice();
     let overrides = {
@@ -200,50 +186,21 @@ it("should allow anyone to Mint", async function (){
     });
 
 it("should allow anyone to Mint 2 ", async function (){
-    let price = await babyDogeNft.dogePrice();
-    let overrides = {
+        let price = await babyDogeNft.dogePrice();
+        let overrides = {
             value: price
           }
-    await babyDogeNft.connect(account9).mintDoge("1", overrides);
-    let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("103")
- });
-    
- let whitelistAddresses2;
-it("Should make a merkleTree", async function (){
-    whitelistAddresses2 = [
-        "0x85d30747868a5081f53BC7B9450301e761620a4f",
-        "0x375CDCB6018f4c24C6380c72AdF4328baBD914Ba",
-        "0x37F023116F67323821b0b523E935071Fb5603f9b",
-        "0x96f2568cb3794611Ee80C22e2D32F504aA273738",
-        "0x9b727D2297f334740cF6BC6c454eBb0604770aad"
-        ]
-        
-        console.log("Accounts Array",whitelistAddresses )
-    });
-        
-it("Should set the leaf nodes and create the merkle tree", async function () {
-        leafNodes = whitelistAddresses2.map(addr => keccak256(addr));
-        merkleTree = new MerkleTree(leafNodes, keccak256, {sortPairs: true});
-        
-        rootHash = merkleTree.getRoot().toString('hex');
-       
-        const claimingAddress = "0x85d30747868a5081f53BC7B9450301e761620a4f";
-        const hashedAddress = keccak256(claimingAddress)
-        console.log("hashedAddress", hashedAddress)
-        const hexProof = merkleTree.getHexProof(hashedAddress);
-          
-        console.log("RootHash", rootHash)
-        let newRootHash = "0x"+rootHash;
-        
-        console.log("MerkleTree");
-        console.log(merkleTree);
-
-        console.log("RootHash");
-        console.log(merkleTree);
+        await babyDogeNft.connect(account9).mintDoge("1", overrides);
+        let totalsupply = await babyDogeNft.totalSupply()
+        expect(totalsupply).to.equal("103")
 });
 
-// it("Should set the merkleRoot", async function () {
 
-//     await babyDogeNft.setMerkleRoot(newRootHash)
-// });
+it("should allow owner to withdraw", async function (){
+  let ownerBalance = await ethers.provider.getBalance(owner.address)
+  console.log("Owner Balance Before", formatEther(ownerBalance))
+  await babyDogeNft.withdrawAndLock()
+  let ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
+  console.log("Owner Balance After", formatEther(ownerBalanceAfter))
+});
+

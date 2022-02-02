@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ebrahimelbagory/Documents/GitHub/BabyDogeNFT-HardHat/contracts/BabyDogeNft.sol": {
-      "lastModificationDate": 1643056218459,
-      "contentHash": "5b6fc486b49ee7b42945efb2163b58e1",
+      "lastModificationDate": 1643821447261,
+      "contentHash": "79b8196d507685a8ebc6d30917b0d16b",
       "sourceName": "contracts/BabyDogeNft.sol",
       "solcConfig": {
         "version": "0.8.0",
@@ -32,17 +32,18 @@
         "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol",
         "@openzeppelin/contracts/access/Ownable.sol",
         "@openzeppelin/contracts/utils/Counters.sol",
-        "@openzeppelin/contracts/utils/math/SafeMath.sol",
         "@openzeppelin/contracts/security/ReentrancyGuard.sol",
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "./uniswap/IUniswapV2Router02.sol",
         "./uniswap/IUniswapV2Factory.sol",
         "./uniswap/IUniswapV2Pair.sol",
-        "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol"
+        "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol",
+        "@openzeppelin/contracts/utils/Address.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "0.8.0"
       ],
       "artifacts": [
         "BabyDogeNFT"
@@ -1025,6 +1026,44 @@
       ],
       "artifacts": [
         "MerkleProof"
+      ]
+    },
+    "/Users/ebrahimelbagory/Documents/GitHub/BabyDogeNFT-HardHat/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
+      "lastModificationDate": 1642784886455,
+      "contentHash": "76814c83c32552ed2b521c816b4d801a",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol",
+        "../../../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SafeERC20"
       ]
     }
   }

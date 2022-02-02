@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./uniswap/IUniswapV2Router02.sol";
 import "./uniswap/IUniswapV2Factory.sol";
 import "./uniswap/IUniswapV2Pair.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 contract BabyDogeNFT is
     VRFConsumerBase,
@@ -20,11 +21,11 @@ contract BabyDogeNFT is
     ReentrancyGuard
 {
     using Counters for Counters.Counter;
-    using SafeMath for uint256;
-    Counters.Counter private _tokenIdTracker;
+    using SafeERC20 for IERC20;
+    using Address for *;
     uint16 internal devTeamPercent;
     uint16 internal lotoPercent;
-    bytes32 internal keyHash;
+    bytes32 internal immutable keyHash;
     string private _baseTokenURI;
     address private constant FACTORY =
         0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
@@ -33,14 +34,13 @@ contract BabyDogeNFT is
     address internal babyDogeToken;
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
-    uint256 internal startingIndex;
-    uint256 public constant dogePrice = 100000000000000; //0.0001 ETH
+    uint256 public constant dogePrice = 1e17; //0.1 ETH
     uint256 internal maxDogePurchase = 1;
-    uint256 internal MAX_DOGES;
+    uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
-    bool internal withdrawIsLocked = false;
+    bool internal withdrawIsLocked;
     bool public ethPayout = true;
-    uint256 internal fee;
+    uint256 internal immutable fee;
     uint256 public prizePool;
     uint256[] public winners;
     uint256[] private toClaimPrize;
@@ -61,9 +61,21 @@ contract BabyDogeNFT is
     Naming to change later -> DOGES, Doges, Doge
      */
 
-    //Events Added post Audit
     event LottoClaimed(uint256 _id, uint256 _prize);
     event WinnersPicked(uint256[] _ids);
+    event SetSettings(
+        uint256 _devTeamPercent,
+        uint256 _lotoPercent,
+        address _babydoge,
+        string _URI
+    );
+    event FlipEthPayout(bool _ethPayout);
+    event SaleStatusSet(uint256 _saleStatus);
+    event MaxMintSet(uint256 _maxMint);
+    event WithdrawAndLock(bool _withdrawAndLock);
+    event ReserveDoges(uint256 _amount);
+    event RevealTimeSet(uint256 _timestamp);
+    event MerkleRootSet(bytes32 _merkleRoot);
 
     constructor(
         string memory name,
@@ -87,7 +99,6 @@ contract BabyDogeNFT is
      * @param Iteration
      * @param NFT ID
      */
-    mapping(uint256 => mapping(uint256 => bool)) internal iterationClaimed;
     mapping(uint256 => uint256) internal iterationTime;
     mapping(uint256 => uint256) internal iterationToClaim;
 
@@ -103,9 +114,10 @@ contract BabyDogeNFT is
         return _baseTokenURI;
     }
 
-    function flipEthPayout() public onlyOwner {
+    function flipEthPayout() external onlyOwner {
         ethPayout = !ethPayout;
         nextRewardNonce();
+        emit FlipEthPayout(ethPayout);
     }
 
     function setSettings(
@@ -114,32 +126,45 @@ contract BabyDogeNFT is
         address _babyDogeToken,
         string memory _baseURILink
     ) external onlyOwner {
+        require(
+            _babyDogeToken != address(0),
+            "Error: Token can't be the zero address"
+        );
         devTeamPercent = _devTeamPercent;
         lotoPercent = _lotoPercent;
         babyDogeToken = _babyDogeToken;
         _baseTokenURI = _baseURILink;
+        emit SetSettings(
+            devTeamPercent,
+            lotoPercent,
+            babyDogeToken,
+            _baseTokenURI
+        );
     }
 
     // Set uint
     // Closed  - 0
     // Whitelist  - 1
     // Public - 2
-    function setSaleStatus(SaleStatus _saleStatus) public onlyOwner {
+    function setSaleStatus(SaleStatus _saleStatus) external onlyOwner {
         saleStatus = _saleStatus;
+        emit SaleStatusSet(uint256(saleStatus));
     }
 
     function getSaleStatus() public view returns (uint256) {
         return uint256(saleStatus);
     }
 
-    function setMaxMint(uint256 _maxDogePurchase) public onlyOwner {
+    function setMaxMint(uint256 _maxDogePurchase) external onlyOwner {
         maxDogePurchase = _maxDogePurchase;
+        emit MaxMintSet(maxDogePurchase);
     }
 
-    function withdrawAndLock() public onlyOwner {
+    function withdrawAndLock() external onlyOwner {
         require(withdrawIsLocked == false);
         withdrawIsLocked = true;
-        payable(owner()).transfer(address(this).balance);
+        payable(owner()).sendValue(address(this).balance);
+        emit WithdrawAndLock(withdrawIsLocked);
     }
 
     function convertETHToBabyDoge() internal {
@@ -168,10 +193,10 @@ contract BabyDogeNFT is
         (uint256 reserveIn, uint256 reserveOut) = token0 == _fromTokenAddress
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
-        uint256 amountInWithFee = _amountIn.mul(997);
-        uint256 numerator = amountInWithFee.mul(reserveOut);
-        uint256 denominator = reserveIn.mul(1000).add(amountInWithFee);
-        amountOut = numerator.div(denominator);
+        uint256 amountInWithFee = _amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = reserveIn * 1000 + amountInWithFee;
+        amountOut = numerator / denominator;
     }
 
     function _swapTokens(address _ToTokenContractAddress, uint256 amountOut)
@@ -193,26 +218,40 @@ contract BabyDogeNFT is
     /**
      * Set some DOGES aside
      */
-    function reserveDoges(uint256 _ammount) public onlyOwner {
+    function reserveDoges(uint256 _amount) external onlyOwner {
         uint256 supply = totalSupply();
         uint256 i;
-        for (i = 0; i < _ammount; i++) {
+        for (i = 0; i < _amount; i++) {
             _safeMint(msg.sender, supply + i + 1);
         }
+        emit ReserveDoges(_amount);
     }
 
-    function setRevealTimestamp(uint256 revealTimeStamp) public onlyOwner {
+    function setRevealTimestamp(uint256 revealTimeStamp) external onlyOwner {
         REVEAL_TIMESTAMP = revealTimeStamp;
+        emit RevealTimeSet(REVEAL_TIMESTAMP);
     }
 
     /**
      * Mints DOGES
      */
-    function mintDoge(uint256 numberOfTokens) public payable {
-        require(saleStatus == SaleStatus.Public);
-        require(numberOfTokens <= maxDogePurchase);
-        require(totalSupply().add(numberOfTokens) <= MAX_DOGES);
-        require(dogePrice.mul(numberOfTokens) <= msg.value);
+    function mintDoge(uint256 numberOfTokens) external payable {
+        require(
+            saleStatus == SaleStatus.Public,
+            "error: public sale has not started yet"
+        );
+        require(
+            numberOfTokens <= maxDogePurchase,
+            "error: you can't mint that many doges"
+        );
+        require(
+            totalSupply() + numberOfTokens <= MAX_DOGES,
+            "error: total supply has been reached"
+        );
+        require(
+            dogePrice * numberOfTokens <= msg.value,
+            "error: not enough Eth"
+        );
 
         for (uint256 i = 0; i < numberOfTokens; i++) {
             uint256 mintIndex = totalSupply() + 1;
@@ -230,38 +269,44 @@ contract BabyDogeNFT is
     }
 
     function claimLotto(uint256 _id) external nonReentrant {
-        require(ownerOf(_id) == msg.sender);
+        require(
+            ownerOf(_id) == msg.sender,
+            "error: you dont own a winning doge"
+        );
         uint256 prize;
         for (uint256 i = 0; i < toClaimPrize.length; i++) {
             if (toClaimPrize[i] == _id) {
-                prize = prizePool.div(toClaimPrize.length);
-                prizePool = prizePool.sub(prize);
+                prize = prizePool / toClaimPrize.length;
+                prizePool = prizePool - prize;
                 for (uint256 a = i; a < toClaimPrize.length - 1; a++) {
                     toClaimPrize[a] = toClaimPrize[a + 1];
                 }
                 toClaimPrize.pop();
                 if (ethPayout) {
-                    payable(ownerOf(_id)).transfer(prize);
+                    payable(ownerOf(_id)).sendValue(prize);
                 } else {
-                    IERC20(babyDogeToken).transfer(ownerOf(_id), prize);
+                    IERC20(babyDogeToken).safeTransfer(ownerOf(_id), prize);
                 }
             }
         }
-        require(prize > 0);
-        //Added post audit
+        require(prize > 0, "error: prize must be greater then 0");
         emit LottoClaimed(_id, prize);
     }
 
-    function nextRewardNonce() public returns (bytes32 requestId) {
-        require(withdrawIsLocked == true);
+    function nextRewardNonce() public nonReentrant returns (bytes32 requestId) {
+        require(
+            withdrawIsLocked,
+            "error: can't call nextRewardNonce before the sale is over"
+        );
         uint256 teamPortion;
         require(
             block.timestamp >
-                iterationTime[currentIteration.current()].add(ITERATION_PERIOD)
+                iterationTime[currentIteration.current()] + ITERATION_PERIOD,
+            "error: iteration period has not passed"
         );
         require(
             LINK.balanceOf(address(this)) >= fee,
-            "Not enough LINK - fill contract with faucet"
+            "Not enough LINK - fill contract with Link"
         );
         currentIteration.increment();
         iterationTime[currentIteration.current()] = block.timestamp;
@@ -269,15 +314,15 @@ contract BabyDogeNFT is
         uint256 balance;
         if (ethPayout) {
             balance = address(this).balance;
-            teamPortion = balance.mul(devTeamPercent).div(10000);
-            payable(owner()).transfer(teamPortion);
-            prizePool = balance.mul(lotoPercent).div(10000);
+            teamPortion = (balance * devTeamPercent) / 10000;
+            payable(owner()).sendValue(teamPortion);
+            prizePool = (balance * lotoPercent) / 10000;
         } else {
             convertETHToBabyDoge();
             balance = IERC20(babyDogeToken).balanceOf(address(this));
-            teamPortion = balance.mul(devTeamPercent).div(10000);
-            IERC20(babyDogeToken).transfer(owner(), teamPortion);
-            prizePool = balance.mul(lotoPercent).div(10000);
+            teamPortion = (balance * devTeamPercent) / 10000;
+            IERC20(babyDogeToken).safeTransfer(owner(), teamPortion);
+            prizePool = (balance * lotoPercent) / 10000;
         }
         return requestRandomness(keyHash, fee);
     }
@@ -289,37 +334,21 @@ contract BabyDogeNFT is
         internal
         override
     {
-        uint256 randInt = randomness % totalSupply().sub(500);
-        winners = [
-            randInt,
-            randInt.add(500),
-            randInt.add(400),
-            randInt.add(300)
-        ];
-        toClaimPrize = [
-            randInt,
-            randInt.add(500),
-            randInt.add(400),
-            randInt.add(300)
-        ];
-        //Added post audit
+        uint256 randInt = (randomness % totalSupply()) - 500;
+        winners = [randInt, randInt + 500, randInt + 400, randInt + 300];
+        toClaimPrize = [randInt, randInt + 500, randInt + 400, randInt + 300];
         emit WinnersPicked(winners);
     }
 
-    //Added post audit
     function getCurrentWinners() public view returns (uint256[] memory) {
         return winners;
     }
 
-    function getMaxDogesPurchaseable() public view returns (uint256) {
-        return maxDogePurchase;
-    }
-
-    // vvvvvvvvvvvvvvvvvvv MerkleTree WhiteList vvvvvvvvvvvvvvvvvvv
     bytes32 public merkleRoot;
 
-    function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         merkleRoot = _merkleRoot;
+        emit MerkleRootSet(merkleRoot);
     }
 
     mapping(address => bool) whitelistClaimed;
@@ -327,13 +356,22 @@ contract BabyDogeNFT is
     function mintWhitelistDoge(
         uint256 numberOfTokens,
         bytes32[] calldata _merkleProof
-    ) public payable {
-        require(saleStatus == SaleStatus.Whitelist);
-        require(!whitelistClaimed[msg.sender], "You have already minted");
+    ) external payable {
+        require(
+            saleStatus == SaleStatus.Whitelist,
+            "Whitelist sale has not started"
+        );
+        require(!whitelistClaimed[msg.sender], "You have already Minted");
 
-        require(numberOfTokens <= maxDogePurchase);
-        require(totalSupply().add(numberOfTokens) <= MAX_DOGES);
-        require(dogePrice.mul(numberOfTokens) <= msg.value);
+        require(
+            numberOfTokens <= maxDogePurchase,
+            "You can't mint that many Doges"
+        );
+        require(
+            totalSupply() + numberOfTokens <= MAX_DOGES,
+            "Unable to mint: would exceed total supply, try minting less"
+        );
+        require(dogePrice * numberOfTokens <= msg.value, "Not enough ETH");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
