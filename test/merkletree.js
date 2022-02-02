@@ -2,7 +2,8 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { formatEther, parseEther, formatUnits, parseUnits} = require("@ethersproject/units");
 const { MerkleTree} = require("merkletreejs");
-const  keccak256  = require("keccak256")
+const  keccak256  = require("keccak256");
+const { providers } = require("ethers");
 
 
 let owner,
@@ -184,7 +185,7 @@ it("should allow anyone to Mint", async function (){
     expect(totalsupply).to.equal("102")
     });
 
-    it("should allow anyone to Mint 2 ", async function (){
+it("should allow anyone to Mint 2 ", async function (){
         let price = await babyDogeNft.dogePrice();
         let overrides = {
             value: price
@@ -192,6 +193,14 @@ it("should allow anyone to Mint", async function (){
         await babyDogeNft.connect(account9).mintDoge("1", overrides);
         let totalsupply = await babyDogeNft.totalSupply()
         expect(totalsupply).to.equal("103")
-        });
-    
+});
+
+
+it("should allow owner to withdraw", async function (){
+  let ownerBalance = await ethers.provider.getBalance(owner.address)
+  console.log("Owner Balance Before", formatEther(ownerBalance))
+  await babyDogeNft.withdrawAndLock()
+  let ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
+  console.log("Owner Balance After", formatEther(ownerBalanceAfter))
+});
 
