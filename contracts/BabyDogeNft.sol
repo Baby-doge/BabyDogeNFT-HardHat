@@ -161,7 +161,7 @@ contract BabyDogeNFT is
     }
 
     function withdrawAndLock() external onlyOwner {
-        require(withdrawIsLocked == false);
+        require(!withdrawIsLocked, "Can only call this function once");
         withdrawIsLocked = true;
         payable(owner()).sendValue(address(this).balance);
         emit WithdrawAndLock(withdrawIsLocked);

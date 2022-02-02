@@ -204,3 +204,11 @@ it("should allow owner to withdraw", async function (){
   console.log("Owner Balance After", formatEther(ownerBalanceAfter))
 });
 
+it("should allow owner to withdraw", async function (){
+    let ownerBalance = await ethers.provider.getBalance(owner.address)
+    console.log("Owner Balance Before", formatEther(ownerBalance))
+    await babyDogeNft.withdrawAndLock()
+    let ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
+    console.log("Owner Balance After", formatEther(ownerBalanceAfter))
+  });
+  
