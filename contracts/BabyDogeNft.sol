@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -13,10 +13,11 @@ import "./uniswap/IUniswapV2Factory.sol";
 import "./uniswap/IUniswapV2Pair.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./ERC721A.sol";
 
 contract BabyDogeNFT is
     VRFConsumerBase,
-    ERC721Enumerable,
+    ERC721A,
     Ownable,
     ReentrancyGuard
 {
@@ -34,7 +35,7 @@ contract BabyDogeNFT is
     address internal babyDogeToken;
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
-    uint256 public constant dogePrice = 1e17; //0.1 ETH
+    uint256 public dogePrice = 1e17; //0.1 ETH
     uint256 internal maxDogePurchase = 1;
     uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
@@ -83,7 +84,7 @@ contract BabyDogeNFT is
         string memory baseTokenURI,
         uint256 maxNftSupply
     )
-        ERC721(name, symbol)
+        ERC721A(name, symbol)
         VRFConsumerBase(
             0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B,
             0x01BE23585060835E02B77ef475b0Cc51aA1e0709
@@ -149,6 +150,10 @@ contract BabyDogeNFT is
     function setSaleStatus(SaleStatus _saleStatus) external onlyOwner {
         saleStatus = _saleStatus;
         emit SaleStatusSet(uint256(saleStatus));
+    }
+
+    function setDogePrice(uint256 _price) external onlyOwner {
+        dogePrice = _price;
     }
 
     function getSaleStatus() public view returns (uint256) {
@@ -219,11 +224,7 @@ contract BabyDogeNFT is
      * Set some DOGES aside
      */
     function reserveDoges(uint256 _amount) external onlyOwner {
-        uint256 supply = totalSupply();
-        uint256 i;
-        for (i = 0; i < _amount; i++) {
-            _safeMint(msg.sender, supply + i + 1);
-        }
+      _safeMint(msg.sender, _amount);
         emit ReserveDoges(_amount);
     }
 
@@ -253,12 +254,8 @@ contract BabyDogeNFT is
             "error: not enough Eth"
         );
 
-        for (uint256 i = 0; i < numberOfTokens; i++) {
-            uint256 mintIndex = totalSupply() + 1;
-            if (totalSupply() < MAX_DOGES) {
-                _safeMint(msg.sender, mintIndex);
-            }
-        }
+        _safeMint(msg.sender, numberOfTokens);
+
 
         if (
             startingIndexBlock == 0 &&
@@ -380,12 +377,8 @@ contract BabyDogeNFT is
 
         whitelistClaimed[msg.sender] = true;
 
-        for (uint256 i = 0; i < numberOfTokens; i++) {
-            uint256 mintIndex = totalSupply() + 1;
-            if (totalSupply() < MAX_DOGES) {
-                _safeMint(msg.sender, mintIndex);
-            }
-        }
+        _safeMint(msg.sender, numberOfTokens);
+
 
         if (
             startingIndexBlock == 0 &&
