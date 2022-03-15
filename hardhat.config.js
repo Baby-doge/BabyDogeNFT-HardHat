@@ -43,6 +43,14 @@ module.exports = {
         },}
       },
       {
+        version: "0.8.4",
+        settings: {
+          optimizer: {
+          enabled: true,
+          runs: 200,
+        },}
+      },
+      {
         version: "0.4.16",
         settings: {},
       },
@@ -50,21 +58,24 @@ module.exports = {
         version: "0.4.18",
       },
       {
+        version: "0.4.11",
+      },
+      {
         version: "0.7.6",
         settings: {},
       },
-      
+  
     ]
   },
   networks: {
     hardhat: {
       forking: {
-        url:"https://eth-mainnet.alchemyapi.io/v2/VISoDFe0KvkxJ9gFiHPhohqxEFXOOlCt",
+        url:"https://eth-rinkeby.alchemyapi.io/v2/CwUkpkV9sNyefFa0a1tntXPIyrGYw8XA",
         //process.env.KOVAN_URL, // must be archive node for next line to work
         gas: "auto",
         gasPrice: "auto",
         timeout: 20000,
-        //blockNumber: 29345600, // block pinning gives x20 perfromance due to caching as stated on hardhat docs
+        blockNumber: 29345600, // block pinning gives x20 perfromance due to caching as stated on hardhat docs
         enabled: true,
       },
     },
@@ -108,3 +119,5 @@ module.exports = {
     
   }
 };
+
+// https://mainnet.infura.io/v3/7166ea05bb69432eae4335a0fb8aaa09

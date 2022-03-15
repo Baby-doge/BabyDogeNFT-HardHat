@@ -12,20 +12,20 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
-  const BabyDogeNFT = await ethers.getContractFactory("BabyDogeNFT");
-  let babyDogeNft = await BabyDogeNFT.deploy("BabyDogeNFT - Latest", "BabyDogeNFT", "https://gaba", "50");
-  await babyDogeNft.deployed();
-  console.log("BabyDogeNFT deployed to:", babyDogeNft.address);
+  // const BabyDogeNFT = await ethers.getContractFactory("BabyDogeNFT");
+  // let babyDogeNft = await BabyDogeNFT.deploy("BabyDogeNFT - Latest", "BabyDogeNFT", "https://ipfs.io/ipfs/QmZM9LLqUJMgADJQ9hNYBDvSLtAECitGbdkLwpzxewpqsD/", "50");
+  // await babyDogeNft.deployed();
+  // console.log("BabyDogeNFT deployed to:", babyDogeNft.address);
 
-  //babyDogeBurner = await ethers.getContractAt("0x375CDCB6018f4c24C6380c72AdF4328baBD914Ba", "0x37F023116F67323821b0b523E935071Fb5603f9b", "0x85d30747868a5081f53BC7B9450301e761620a4f", "0x85d30747868a5081f53BC7B9450301e761620a4f", babyDoge.address, uniswapRouter);
+  // //babyDogeBurner = await ethers.getContractAt("0x375CDCB6018f4c24C6380c72AdF4328baBD914Ba", "0x37F023116F67323821b0b523E935071Fb5603f9b", "0x85d30747868a5081f53BC7B9450301e761620a4f", "0x85d30747868a5081f53BC7B9450301e761620a4f", babyDoge.address, uniswapRouter);
 
-  await delay(30000);
+  // await delay(30000);
 
   try {
 
     await hre.run("verify:verify", {
-      address: babyDogeNft.address,
-      constructorArguments: ["BabyDogeNFT - Latest", "BabyDogeNFT", "https://gaba", "50"]
+      address: "0x51cE8F387f04fC04d81772588d2e62B3757F7b84",
+      constructorArguments: ["BabyDogeNFT - Latest", "BabyDogeNFT", "https://ipfs.io/ipfs/QmZM9LLqUJMgADJQ9hNYBDvSLtAECitGbdkLwpzxewpqsD/", "50"]
     });
   } catch (e) {
     console.log(e);

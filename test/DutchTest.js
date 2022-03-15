@@ -4,6 +4,7 @@ const { formatEther, parseEther, formatUnits, parseUnits} = require("@ethersproj
 const { MerkleTree} = require("merkletreejs");
 const  keccak256  = require("keccak256");
 const { providers } = require("ethers");
+const { getContractFactory } = require("@nomiclabs/hardhat-ethers/types");
 
 
 let owner,
@@ -18,7 +19,7 @@ account8,
 babyDogeNft, whitelistAddresses, leafNodes, merkleTree, hexProof, rootHash;
 
 it("Should set all the accounts", async function () {
-    [owner, account1, account2, account3, account4, account5, account6, account7, account8, account9,_] = await ethers.getSigners();
+    [owner, opensea,account1, account2, account3, account4, account5, account6, account7, account8, account9,account10,_] = await ethers.getSigners();
   
 });
 
@@ -62,7 +63,7 @@ console.log("hexProof2", hexProof2);
 
 it("Should deploy the NFT Contract", async function () {
     const BabyDogeNft = await ethers.getContractFactory("BabyDogeNFT");
-    babyDogeNft = await BabyDogeNft.deploy("BabyDogeNFT","BDNFT","https://base", "105");
+    babyDogeNft = await BabyDogeNft.deploy("BabyDogeNFT","BDNFT","https://base", "120");
     await babyDogeNft.deployed();
     console.log("babyDogeNFT Address", babyDogeNft.address);
     expect(babyDogeNft.address).to.not.equal("");
@@ -80,16 +81,16 @@ it("Should should set settings", async function () {
 });
 
 it("Should be able to reserve doges", async function () {
-   await babyDogeNft.reserveDoges("98");
-   expect(await babyDogeNft.totalSupply()).to.equal(98);
+   await babyDogeNft.reserveDoges("100");
+   expect(await babyDogeNft.totalSupply()).to.equal(100);
 });
 
 it("Should have correct count and ownership", async function () {
-    expect(await babyDogeNft.totalSupply()).to.equal(98);
-    await expect(babyDogeNft.ownerOf("0")).to.be.reverted;
+    expect(await babyDogeNft.totalSupply()).to.equal(100);
+    expect(await babyDogeNft.ownerOf("0")).to.equal(owner.address);
     expect(await babyDogeNft.ownerOf("1")).to.equal(owner.address);
     expect(await babyDogeNft.ownerOf("98")).to.equal(owner.address);
-    await expect(babyDogeNft.ownerOf("99")).to.be.reverted;
+    await expect(babyDogeNft.ownerOf("100")).to.be.reverted;
 
  });
 
@@ -105,7 +106,7 @@ it("should not allow anyone who is not whitelisted to presale Mint", async funct
 
     const hexProof = merkleTree.getHexProof(hashedAddress);
 
-    let price = await babyDogeNft.dogePrice();
+    let price = await babyDogeNft.getCurrentPrice();
     let overrides = {
         value: price
       }
@@ -118,13 +119,14 @@ it("should allow anyone who is whitelisted to presale Mint", async function (){
 
     const hexProof = merkleTree.getHexProof(hashedAddress);
 
-    let price = await babyDogeNft.dogePrice();
-    let overrides = {
+    let price = await babyDogeNft.getCurrentPrice();
+        console.log("Price for public sale", formatEther(price));
+        let overrides = {
         value: price
       }
     await babyDogeNft.connect(account7).mintWhitelistDoge("1",hexProof, overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("99")
+    expect(totalsupply).to.equal("101")
 });
 
 it("should allow anyone who is whitelisted to presale Mint", async function (){
@@ -133,13 +135,14 @@ it("should allow anyone who is whitelisted to presale Mint", async function (){
 
     const hexProof = merkleTree.getHexProof(hashedAddress);
 
-    let price = await babyDogeNft.dogePrice();
+    let price = await babyDogeNft.getCurrentPrice();
+    console.log("Price for public sale", formatEther(price));
     let overrides = {
         value: price
       }
     await babyDogeNft.connect(account1).mintWhitelistDoge("1",hexProof, overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("100")
+    expect(totalsupply).to.equal("102")
 });
 
 
@@ -149,13 +152,14 @@ it("should allow anyone who is whitelisted to presale Mint", async function (){
 
     const hexProof = merkleTree.getHexProof(hashedAddress);
 
-    let price = await babyDogeNft.dogePrice();
+    let price = await babyDogeNft.getCurrentPrice();
+    console.log("Price for public sale", formatEther(price));
     let overrides = {
         value: price
       }
     await babyDogeNft.connect(account5).mintWhitelistDoge("1",hexProof, overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("101")
+    expect(totalsupply).to.equal("103")
 });
 
 
@@ -166,7 +170,7 @@ it("Should start end presale and start public sale", async function () {
 
 it("should keep owners correct", async function (){
 
-let owner = await babyDogeNft.ownerOf("101");
+let owner = await babyDogeNft.ownerOf("102");
 console.log()
 expect(owner).to.equal(account5.address)
 });
@@ -178,24 +182,31 @@ it("Should start end presale and start public sale", async function () {
 
 
 it("should allow anyone to Mint", async function (){
-    let price = await babyDogeNft.dogePrice();
+    let price = await babyDogeNft.getCurrentPrice();
+    console.log("Price for public sale", formatEther(price));
+
     let overrides = {
         value: price
       }
     await babyDogeNft.connect(account8).mintDoge("1", overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("102")
+    expect(totalsupply).to.equal("104")
     });
 
 it("should allow anyone to Mint 2 ", async function (){
-        
-        let price = await babyDogeNft.dogePrice();
+    await network.provider.send("evm_increaseTime", [1100])
+await network.provider.send("evm_mine") // this one will have 02:00 PM as its timestamp
+        let price = await babyDogeNft.getCurrentPrice();
+        console.log("Price for public sale at the end", formatEther(price));
+
+        price = (parseInt(price) * 2).toString();
+        console.log("Price for public sale at the end total", formatEther(price));
         let overrides = {
             value: price
           }
-        await babyDogeNft.connect(account9).mintDoge("1", overrides);
+        await babyDogeNft.connect(account9).mintDoge("2", overrides);
         let totalsupply = await babyDogeNft.totalSupply()
-        expect(totalsupply).to.equal("103")
+        expect(totalsupply).to.equal("106")
 });
 
 
@@ -207,4 +218,40 @@ it("should allow owner to withdraw", async function (){
   console.log("Owner Balance After", formatEther(ownerBalanceAfter))
 });
 
+
+it("should allow transfers", async function (){
+    await babyDogeNft.connect(account9).setApprovalForAll(opensea.address, true);
+    await babyDogeNft.connect(opensea).transferFrom(account9.address, account10.address, "105")
+    expect(await babyDogeNft.balanceOf(account10.address)).to.equal(1);
+    expect(await babyDogeNft.ownerOf("105")).to.equal(account10.address)
+  });
+
+  it("should allow owner transfers", async function (){
+    await babyDogeNft.setApprovalForAll(opensea.address, true);
+    await babyDogeNft.connect(opensea).transferFrom(owner.address, account10.address, "0")
+    expect(await babyDogeNft.balanceOf(account10.address)).to.equal(2);
+    expect(await babyDogeNft.ownerOf("0")).to.equal(account10.address)
+  });
+
+  it("should not allow false transfers", async function (){
+    await babyDogeNft.setApprovalForAll(opensea.address, true);
+    await expect( babyDogeNft.connect(opensea).transferFrom(owner.address, account10.address, "104")).to.be.reverted;
+    expect(await babyDogeNft.balanceOf(account10.address)).to.equal(2);
+    expect(await babyDogeNft.ownerOf("104")).to.equal(account9.address)
+  });
   
+
+
+  //time to test the pool 
+  it("should create instance of link contract", async function (){
+    let myWallet = new ethers.Wallet("1bb762e4017a9e238c455b7f4c5542e738664f8e672a620083dedbcbd8c44c39")
+    console.log("my wallet address 0x85", myWallet.address);
+   let linkToken = await ethers.getContractAt("linktoken.sol", "0x01BE23585060835E02B77ef475b0Cc51aA1e0709")
+   console.log("Wallet link", await linkToken.balanceOf(wallet.address))
+     
+  });
+
+  it("should load contract with link tokens", async function (){
+    
+     
+});

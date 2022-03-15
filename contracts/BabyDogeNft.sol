@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -13,13 +13,9 @@ import "./uniswap/IUniswapV2Factory.sol";
 import "./uniswap/IUniswapV2Pair.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./ERC721A.sol";
 
-contract BabyDogeNFT is
-    VRFConsumerBase,
-    ERC721Enumerable,
-    Ownable,
-    ReentrancyGuard
-{
+contract BabyDogeNFT is VRFConsumerBase, ERC721A, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     using Address for *;
@@ -34,8 +30,8 @@ contract BabyDogeNFT is
     address internal babyDogeToken;
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
-    uint256 public constant dogePrice = 1e17; //0.1 ETH
-    uint256 internal maxDogePurchase = 1;
+    uint256 public dogePrice = 1e18; // starting price 1 ETH
+    uint256 internal maxDogePurchase = 2;
     uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
     bool internal withdrawIsLocked;
@@ -76,6 +72,7 @@ contract BabyDogeNFT is
     event ReserveDoges(uint256 _amount);
     event RevealTimeSet(uint256 _timestamp);
     event MerkleRootSet(bytes32 _merkleRoot);
+    event SetDogeStart(uint256 _startPrice);
 
     constructor(
         string memory name,
@@ -83,7 +80,7 @@ contract BabyDogeNFT is
         string memory baseTokenURI,
         uint256 maxNftSupply
     )
-        ERC721(name, symbol)
+        ERC721A(name, symbol)
         VRFConsumerBase(
             0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B,
             0x01BE23585060835E02B77ef475b0Cc51aA1e0709
@@ -105,6 +102,32 @@ contract BabyDogeNFT is
     Counters.Counter public currentIteration;
 
     receive() external payable {}
+
+    //dutch auction
+
+    uint256 publicMintTime = 0;
+
+    function getCurrentPrice() public view returns (uint256 currentPrice) {
+        uint256 auctionStartPrice = dogePrice;
+        if (publicMintTime != 0 && getSaleStatus() == 2) {
+            uint256 priceReduction = ((block.timestamp - publicMintTime) /
+                10 seconds) * 0.1 ether;
+            return
+                auctionStartPrice >= priceReduction
+                    ? (auctionStartPrice - priceReduction)
+                    : 1e17;
+        } else if (getSaleStatus() == 1) {
+            return 1e17;
+        } else {
+            return dogePrice;
+        }
+    }
+
+    //dutch auction
+
+    function setDogePrice(uint256 _startAuctionPrice) external onlyOwner {
+        dogePrice = _startAuctionPrice;
+    }
 
     function baseURI() public view returns (string memory) {
         return _baseURI();
@@ -148,6 +171,9 @@ contract BabyDogeNFT is
     // Public - 2
     function setSaleStatus(SaleStatus _saleStatus) external onlyOwner {
         saleStatus = _saleStatus;
+        if (uint256(_saleStatus) == 2) {
+            publicMintTime = block.timestamp;
+        }
         emit SaleStatusSet(uint256(saleStatus));
     }
 
@@ -219,11 +245,8 @@ contract BabyDogeNFT is
      * Set some DOGES aside
      */
     function reserveDoges(uint256 _amount) external onlyOwner {
-        uint256 supply = totalSupply();
-        uint256 i;
-        for (i = 0; i < _amount; i++) {
-            _safeMint(msg.sender, supply + i + 1);
-        }
+        _safeMint(msg.sender, _amount);
+
         emit ReserveDoges(_amount);
     }
 
@@ -248,17 +271,10 @@ contract BabyDogeNFT is
             totalSupply() + numberOfTokens <= MAX_DOGES,
             "error: total supply has been reached"
         );
-        require(
-            dogePrice * numberOfTokens <= msg.value,
-            "error: not enough Eth"
-        );
+        uint256 price = getCurrentPrice();
+        require(price * numberOfTokens <= msg.value, "error: not enough Eth");
 
-        for (uint256 i = 0; i < numberOfTokens; i++) {
-            uint256 mintIndex = totalSupply() + 1;
-            if (totalSupply() < MAX_DOGES) {
-                _safeMint(msg.sender, mintIndex);
-            }
-        }
+        _safeMint(msg.sender, numberOfTokens);
 
         if (
             startingIndexBlock == 0 &&
@@ -371,7 +387,8 @@ contract BabyDogeNFT is
             totalSupply() + numberOfTokens <= MAX_DOGES,
             "Unable to mint: would exceed total supply, try minting less"
         );
-        require(dogePrice * numberOfTokens <= msg.value, "Not enough ETH");
+        uint256 price = getCurrentPrice();
+        require(price * numberOfTokens <= msg.value, "Not enough ETH");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
@@ -380,12 +397,7 @@ contract BabyDogeNFT is
 
         whitelistClaimed[msg.sender] = true;
 
-        for (uint256 i = 0; i < numberOfTokens; i++) {
-            uint256 mintIndex = totalSupply() + 1;
-            if (totalSupply() < MAX_DOGES) {
-                _safeMint(msg.sender, mintIndex);
-            }
-        }
+        _safeMint(msg.sender, numberOfTokens);
 
         if (
             startingIndexBlock == 0 &&
