@@ -36,7 +36,7 @@ contract BabyDogeNFT is
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
     uint256 public dogePrice = 1e17; //0.1 ETH
-    uint256 internal maxDogePurchase = 1;
+    uint256 public maxDogePurchase = 1;
     uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
     bool internal withdrawIsLocked;
