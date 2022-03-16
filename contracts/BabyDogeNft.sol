@@ -36,7 +36,7 @@ contract BabyDogeNFT is
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
     uint256 public dogePrice = 1e17; //0.1 ETH
-    uint256 public maxDogePurchase = 1;
+    uint256 public maxDogePurchase = 2;
     uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
     bool internal withdrawIsLocked;
@@ -233,6 +233,8 @@ contract BabyDogeNFT is
         emit RevealTimeSet(REVEAL_TIMESTAMP);
     }
 
+    mapping(address => uint256) mintedDoges;
+
     /**
      * Mints DOGES
      */
@@ -253,7 +255,11 @@ contract BabyDogeNFT is
             dogePrice * numberOfTokens <= msg.value,
             "error: not enough Eth"
         );
-
+        require(
+            mintedDoges[msg.sender] + numberOfTokens <= maxDogePurchase, 
+            "error: too many doges minted already, try lowering the number of doges you want to mint"
+        );
+        mintedDoges[msg.sender] += numberOfTokens;
         _safeMint(msg.sender, numberOfTokens);
 
 
@@ -358,7 +364,9 @@ contract BabyDogeNFT is
             saleStatus == SaleStatus.Whitelist,
             "Whitelist sale has not started"
         );
-        require(!whitelistClaimed[msg.sender], "You have already Minted");
+        require(
+            !whitelistClaimed[msg.sender], 
+            "You have already Minted");
 
         require(
             numberOfTokens <= maxDogePurchase,

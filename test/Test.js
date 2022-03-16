@@ -179,13 +179,26 @@ it("Should start end presale and start public sale", async function () {
 
 it("should allow anyone to Mint", async function (){
     let price = await babyDogeNft.dogePrice();
+    let total = parseInt(price) * 2
     let overrides = {
-        value: price
+        value: total.toString()
       }
-    await babyDogeNft.connect(account8).mintDoge("1", overrides);
+    console.log("Balance of babydoge", await babyDogeNft.balanceOf(account8.address))
+    await babyDogeNft.connect(account8).mintDoge("2", overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("102")
+    expect(totalsupply).to.equal("103")
     });
+
+
+it("should not allow anyone to Mint more then they already have", async function (){
+  let price = await babyDogeNft.dogePrice();
+  let overrides = {
+      value: price
+    }
+  await expect(babyDogeNft.connect(account8).mintDoge("1", overrides)).to.be.reverted;
+  let totalsupply = await babyDogeNft.totalSupply()
+  expect(totalsupply).to.equal("103")
+  });
 
 it("should allow anyone to Mint 2 ", async function (){
         let price = await babyDogeNft.dogePrice();
@@ -194,7 +207,7 @@ it("should allow anyone to Mint 2 ", async function (){
           }
         await babyDogeNft.connect(account9).mintDoge("1", overrides);
         let totalsupply = await babyDogeNft.totalSupply()
-        expect(totalsupply).to.equal("103")
+        expect(totalsupply).to.equal("104")
 });
 
 
@@ -216,9 +229,9 @@ it("should not allow owner to withdraw again", async function (){
 
   it("should allow transfers", async function (){
     await babyDogeNft.connect(account9).setApprovalForAll(opensea.address, true);
-    await babyDogeNft.connect(opensea).transferFrom(account9.address, account10.address, "102")
+    await babyDogeNft.connect(opensea).transferFrom(account9.address, account10.address, "103")
     expect(await babyDogeNft.balanceOf(account10.address)).to.equal(1);
-    expect(await babyDogeNft.ownerOf("102")).to.equal(account10.address)
+    expect(await babyDogeNft.ownerOf("103")).to.equal(account10.address)
   });
 
   it("should allow owner transfers second time", async function (){
@@ -230,8 +243,8 @@ it("should not allow owner to withdraw again", async function (){
 
   it("should not allow false transfers", async function (){
     await babyDogeNft.setApprovalForAll(opensea.address, true);
-    await expect( babyDogeNft.connect(opensea).transferFrom(owner.address, account9.address, "102")).to.be.reverted;
+    await expect( babyDogeNft.connect(opensea).transferFrom(owner.address, account9.address, "103")).to.be.reverted;
     expect(await babyDogeNft.balanceOf(account10.address)).to.equal(2);
-    expect(await babyDogeNft.ownerOf("102")).to.equal(account10.address)
+    expect(await babyDogeNft.ownerOf("103")).to.equal(account10.address)
   });
   

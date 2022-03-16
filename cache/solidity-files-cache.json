@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ebrahimelbagory/Documents/GitHub/BabyDogeNFT-HardHat/contracts/BabyDogeNft.sol": {
-      "lastModificationDate": 1647437833479,
-      "contentHash": "bf05f9886ca3aa374c1a244d74549f99",
+      "lastModificationDate": 1647454010833,
+      "contentHash": "3fcbca94bd888ed9607cc2931038a7e9",
       "sourceName": "contracts/BabyDogeNft.sol",
       "solcConfig": {
         "version": "0.8.4",
