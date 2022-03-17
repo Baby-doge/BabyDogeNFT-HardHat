@@ -184,13 +184,25 @@ it("should allow anyone to Mint", async function (){
         value: total.toString()
       }
     console.log("Balance of babydoge", await babyDogeNft.balanceOf(account8.address))
-    await babyDogeNft.connect(account8).mintDoge("2", overrides);
+    await babyDogeNft.connect(account8).mintDoge("1", overrides);
     let totalsupply = await babyDogeNft.totalSupply()
-    expect(totalsupply).to.equal("103")
+    expect(totalsupply).to.equal("102")
     });
 
+    it("should allow anyone to Mint", async function (){
+      let price = await babyDogeNft.dogePrice();
+      let total = parseInt(price) * 2
+      let overrides = {
+          value: total.toString()
+        }
+      console.log("Balance of babydoge", await babyDogeNft.balanceOf(account8.address))
+      await babyDogeNft.connect(account8).mintDoge("1", overrides);
+      let totalsupply = await babyDogeNft.totalSupply()
+      expect(totalsupply).to.equal("103")
+      });
 
-it("should not allow anyone to Mint more then they already have", async function (){
+
+it("should not allow anyone to Mint more the the limit", async function (){
   let price = await babyDogeNft.dogePrice();
   let overrides = {
       value: price

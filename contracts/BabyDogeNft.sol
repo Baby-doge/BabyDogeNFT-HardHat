@@ -241,23 +241,23 @@ contract BabyDogeNFT is
     function mintDoge(uint256 numberOfTokens) external payable {
         require(
             saleStatus == SaleStatus.Public,
-            "error: public sale has not started yet"
+            "Public sale has not started yet"
         );
         require(
             numberOfTokens <= maxDogePurchase,
-            "error: you can't mint that many doges"
+            "You can't mint that many doges"
         );
         require(
             totalSupply() + numberOfTokens <= MAX_DOGES,
-            "error: total supply has been reached"
+            "Total supply has been reached"
         );
         require(
             dogePrice * numberOfTokens <= msg.value,
-            "error: not enough Eth"
+            "Not enough ETH"
         );
         require(
             mintedDoges[msg.sender] + numberOfTokens <= maxDogePurchase, 
-            "error: too many doges minted already, try lowering the number of doges you want to mint"
+            "Max minted doges reached, try minting less"
         );
         mintedDoges[msg.sender] += numberOfTokens;
         _safeMint(msg.sender, numberOfTokens);
@@ -362,11 +362,11 @@ contract BabyDogeNFT is
     ) external payable {
         require(
             saleStatus == SaleStatus.Whitelist,
-            "Whitelist sale has not started"
+            "Whitelist sale is not currently running"
         );
         require(
             !whitelistClaimed[msg.sender], 
-            "You have already Minted");
+            "You have already used your whitelist");
 
         require(
             numberOfTokens <= maxDogePurchase,
@@ -374,7 +374,7 @@ contract BabyDogeNFT is
         );
         require(
             totalSupply() + numberOfTokens <= MAX_DOGES,
-            "Unable to mint: would exceed total supply, try minting less"
+            "Total supply has been reached"
         );
         require(dogePrice * numberOfTokens <= msg.value, "Not enough ETH");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));

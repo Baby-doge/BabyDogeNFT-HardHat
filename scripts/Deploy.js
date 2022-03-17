@@ -13,7 +13,7 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 async function main() {
   // // Hardhat always runs the compile task when running scripts with its command
   // const BabyDogeNFT = await ethers.getContractFactory("BabyDogeNFT");
-  // let babyDogeNft = await BabyDogeNFT.deploy("BabyDogeNFT - Latest", "BabyDogeNFT", "https://gaba", "50");
+  // let babyDogeNft = await BabyDogeNFT.deploy("BabyDoge Army", "BabyDogeArmyNFT", "https://ipfs.io/ipfs/QmQQCTSBhkmBtj23pNLJkg9rt7EWPtsmXcVbDz3efqXhuV/", "10000");
   // await babyDogeNft.deployed();
   // console.log("BabyDogeNFT deployed to:", babyDogeNft.address);
 
@@ -22,10 +22,10 @@ async function main() {
   // await delay(30000);
 
   try {
-
+    //https://ipfs.io/ipfs/QmQQCTSBhkmBtj23pNLJkg9rt7EWPtsmXcVbDz3efqXhuV/
     await hre.run("verify:verify", {
-      address: "0x284670664B09cEAACF3EDBb6Ec62F3C04D0C3A67",
-      constructorArguments: ["BabyDogeNFT - Latest", "BabyDogeNFT", "https://gaba", "50"]
+      address: "0x5aa43ff2024A7d214a9bfAd061052Ba29Fb029D4",
+      constructorArguments: ["BabyDoge Army", "BabyDogeArmyNFT", "https://ipfs.io/ipfs/QmQQCTSBhkmBtj23pNLJkg9rt7EWPtsmXcVbDz3efqXhuV/", "10000"]
     });
   } catch (e) {
     console.log(e);
