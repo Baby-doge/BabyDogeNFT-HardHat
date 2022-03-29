@@ -49,18 +49,7 @@ module.exports = {
           enabled: true,
           runs: 200,
         },}
-      },
-      {
-        version: "0.4.16",
-        settings: {},
-      },
-      {
-        version: "0.4.18",
-      },
-      {
-        version: "0.7.6",
-        settings: {},
-      },
+      }
       
     ]
   },
@@ -88,14 +77,8 @@ module.exports = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    bsc: {
-      url: process.env.BSC_MAINNET_URL || "",
-      accounts:
-          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-
     rinkeby: {
-      url: process.env.RINKEBY_URL || "",
+      url: "https://rinkeby.infura.io/v3/2b52e4632c7f4878852f35d5d4baa160" || "",
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },

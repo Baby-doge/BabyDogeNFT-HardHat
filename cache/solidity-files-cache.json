@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ebrahimelbagory/Documents/GitHub/BabyDogeNFT-HardHat/contracts/BabyDogeNft.sol": {
-      "lastModificationDate": 1647611310404,
-      "contentHash": "a1bf8a3c1e8267cc7305b4a30af4a6f1",
+      "lastModificationDate": 1647617570482,
+      "contentHash": "e774c869ee0c5d7d7bde732aae98b7e7",
       "sourceName": "contracts/BabyDogeNft.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -47,7 +47,7 @@
         "0.8.4"
       ],
       "artifacts": [
-        "BabyDogeNFT"
+        "BabyDoge"
       ]
     },
     "/Users/ebrahimelbagory/Documents/GitHub/BabyDogeNFT-HardHat/node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol": {

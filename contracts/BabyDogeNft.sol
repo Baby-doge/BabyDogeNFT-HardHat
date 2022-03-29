@@ -15,7 +15,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./ERC721A.sol";
 
-contract BabyDogeNFT is
+contract BabyDoge is
     VRFConsumerBase,
     ERC721A,
     Ownable,
@@ -86,14 +86,14 @@ contract BabyDogeNFT is
     )
         ERC721A(name, symbol)
         VRFConsumerBase(
-            0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B,
-            0x01BE23585060835E02B77ef475b0Cc51aA1e0709
+            0x271682DEB8C4E0901D1a1550aD2e64D568E69909,
+            0x514910771AF9Ca656af840dff83E8264EcF986CA
         )
     {
         _baseTokenURI = baseTokenURI;
         MAX_DOGES = maxNftSupply;
-        keyHash = 0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311;
-        fee = 2 * 10**18; // 0.1 LINK (Varies by network)
+        keyHash = 0x9fe0eebf5e446e3c998ec9bb19951541aee00bb90ea201ae456421a2ded86805;
+        fee = 25e16; // 0.25 LINK 
     }
 
     /*
@@ -241,7 +241,7 @@ contract BabyDogeNFT is
     function mintDoge(uint256 numberOfTokens) external payable {
         require(
             saleStatus == SaleStatus.Public,
-            "Public sale has not started yet"
+            "Public sale has not live"
         );
         require(
             numberOfTokens <= maxDogePurchase,
@@ -253,11 +253,11 @@ contract BabyDogeNFT is
         );
         require(
             dogePrice * numberOfTokens <= msg.value,
-            "Not enough ETH"
+            "Check your balance, not enough ETH to complete mint"
         );
         require(
             mintedDoges[msg.sender] + numberOfTokens <= maxDogePurchase, 
-            "Max minted doges reached, try minting less"
+            "Each user is only allowed to mint 2 doges, try adjusting your quantities"
         );
         mintedDoges[msg.sender] += numberOfTokens;
         _safeMint(msg.sender, numberOfTokens);
@@ -362,15 +362,15 @@ contract BabyDogeNFT is
     ) external payable {
         require(
             saleStatus == SaleStatus.Whitelist,
-            "Whitelist sale is not currently running"
+            "Whitelist sale is not live"
         );
         require(
             !whitelistClaimed[msg.sender], 
-            "You have already used your whitelist");
+            "Your whitelist entry has already been claimed");
 
         require(
             numberOfTokens <= maxDogePurchase,
-            "You can't mint that many Doges"
+            "You can't mint that many doges"
         );
         require(
             totalSupply() + numberOfTokens <= MAX_DOGES,
@@ -380,7 +380,7 @@ contract BabyDogeNFT is
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
-            "You aren't on the whitelist"
+            "Oops, can't find you on the whitelist"
         );
 
         whitelistClaimed[msg.sender] = true;
