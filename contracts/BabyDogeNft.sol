@@ -35,7 +35,7 @@ contract BabyDoge is
     address internal babyDogeToken;
     uint256 public REVEAL_TIMESTAMP;
     uint256 internal startingIndexBlock;
-    uint256 public dogePrice = 1e17; //0.1 ETH
+    uint256 public dogePrice = 14e16; //0.1 ETH
     uint256 public maxDogePurchase = 2;
     uint256 internal immutable MAX_DOGES;
     uint256 internal constant ITERATION_PERIOD = 4 weeks;
@@ -152,6 +152,7 @@ contract BabyDoge is
         emit SaleStatusSet(uint256(saleStatus));
     }
 
+    //in eth
     function setDogePrice(uint256 _price) external onlyOwner {
         dogePrice = _price;
     }
