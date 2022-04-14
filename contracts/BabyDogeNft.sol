@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.13;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -152,7 +152,6 @@ contract BabyDoge is
         emit SaleStatusSet(uint256(saleStatus));
     }
 
-    //in eth
     function setDogePrice(uint256 _price) external onlyOwner {
         dogePrice = _price;
     }

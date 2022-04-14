@@ -16,12 +16,12 @@ async function main() {
   // const BabyDogeNFT = await ethers.getContractFactory(
   //   "contracts/BabyDogeNft.sol:BabyDoge"
   // );
-  // let babyDogeNft = await BabyDogeNFT.deploy(
-  //   "BabyDoge",
-  //   "BabyDoge",
-  //   "https://ipfs.io/ipfs/QmQQCTSBhkmBtj23pNLJkg9rt7EWPtsmXcVbDz3efqXhuV/",
-  //   "10000"
-  // );
+  let babyDogeNft = await BabyDogeNFT.deploy(
+    "BabyDoge",
+    "BabyDoge",
+    "https://ipfs.io/ipfs/QmQQCTSBhkmBtj23pNLJkg9rt7EWPtsmXcVbDz3efqXhuV/",
+    "10000"
+  );
   // await babyDogeNft.deployed();
   // console.log("BabyDogeNFT deployed to:", babyDogeNft.address);
 
