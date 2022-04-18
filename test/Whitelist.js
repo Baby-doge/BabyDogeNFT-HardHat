@@ -1,6 +1,4 @@
-const { MerkleTree } = require("merkletreejs");
-const keccak256 = require("keccak256");
-const whitelist = [
+export const whitelist = [
   "0xac57de9c1a09fec648e93eb98875b212db0d460b",
   "0xb25873DBC804AfFc4D6Ed3C312A724975de51181",
   "0x58A9b6c047d133159392CdcC580075940971fbAB",
@@ -10685,35 +10683,3 @@ const whitelist = [
   "0x87aa9A87Dfe60D27D4867E44f012E48C220CDD56",
   "0x85d30747868a5081f53BC7B9450301e761620a4f",
 ];
-
-it("Should set the leaf nodes and create the merkle tree", async function () {
-  leafNodes = whitelist.map((addr) => keccak256(addr));
-  merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
-
-  rootHash = merkleTree.getRoot().toString("hex");
-  console.log("MerkleTree", merkleTree.toString());
-});
-
-it("Should attempt to get hex proof for front end", async function () {
-  const claimingAddress = leafNodes[0];
-
-  hexProof = merkleTree.getHexProof(claimingAddress);
-
-  const claimingAddress2 = "0x85d30747868a5081f53BC7B9450301e761620a4f";
-  const hashedAddress = keccak256(claimingAddress2);
-
-  const hexProof2 = merkleTree.getHexProof(hashedAddress);
-
-  console.log("hexProof", hexProof);
-  console.log("hexProof2", hexProof2);
-  console.log("RootHash", rootHash);
-  let newRootHash = "0x" + rootHash;
-  console.log("Hex root hash", newRootHash);
-});
-
-it("Should set the leaf nodes and create the merkle tree", async function () {
-  const claimingAddress2 = "0x37F023116F67323821b0b523E935071Fb5603f9b";
-  const hashedAddress = keccak256(claimingAddress2);
-  const hexProof2 = merkleTree.getHexProof(hashedAddress);
-  console.log("Input", hexProof2);
-});
